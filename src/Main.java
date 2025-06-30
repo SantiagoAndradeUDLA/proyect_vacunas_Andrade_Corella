@@ -21,6 +21,8 @@ public class Main {
             System.out.println("5. Ver historial de vacunación");
             System.out.println("6. Alertas de dosis faltantes");
             System.out.println("7. Reporte mensual");
+            System.out.println("8. Agregar nueva vacuna al catálogo");
+            System.out.println("9. Mostrar catálogo de vacunas");
             System.out.println("0. Salir");
             System.out.print("Seleccione opción: ");
             int opcion = Integer.parseInt(sc.nextLine());
@@ -33,6 +35,8 @@ public class Main {
                 case 5 -> verHistorial();
                 case 6 -> reporteService.alertasDosisFaltantes();
                 case 7 -> reporteMensual();
+                case 8 -> agregarVacuna();
+                case 9 -> vacunacionService.mostrarCatalogoVacunas();
                 case 0 -> salir = true;
                 default -> System.out.println("Opción inválida.");
             }
@@ -40,11 +44,23 @@ public class Main {
         System.out.println("Fin del sistema.");
     }
 
+    private static String pedirCedulaValida() {
+        while (true) {
+            System.out.print("(10 dígitos): ");
+            String cedula = sc.nextLine().trim();
+            if (cedula.matches("\\d{10}")) {
+                return cedula;
+            } else {
+                System.out.println("Error: La cédula debe contener exactamente 10 dígitos. Intente de nuevo.");
+            }
+        }
+    }
+
     private static void registrarPaciente() {
         System.out.print("Nombre: ");
         String nombre = sc.nextLine();
-        System.out.print("Cédula: ");
-        String cedula = sc.nextLine();
+        System.out.print("Cédula ");
+        String cedula = pedirCedulaValida();
         System.out.print("Dirección: ");
         String direccion = sc.nextLine();
         System.out.print("Edad: ");
@@ -104,13 +120,22 @@ public class Main {
             System.out.println("Paciente no encontrado.");
             return;
         }
-        System.out.print("Fecha (yyyy-MM-dd): ");
-        LocalDate fecha = LocalDate.parse(sc.nextLine(), dtf);
-        System.out.print("Tipo de vacuna: ");
-        String tipoVacuna = sc.nextLine();
-        System.out.print("Número de dosis: ");
-        int dosis = Integer.parseInt(sc.nextLine());
 
+        vacunacionService.mostrarCatalogoVacunas();
+        System.out.print("Seleccione el nombre de la vacuna a administrar: ");
+        String nombreVacuna = sc.nextLine();
+
+        System.out.print("Fecha de vacunación (yyyy-MM-dd): ");
+        String fechaStr = sc.nextLine();
+        LocalDate fecha;
+        try {
+            fecha = LocalDate.parse(fechaStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (Exception e) {
+            System.out.println("Formato de fecha inválido.");
+            return;
+        }
+
+        // Datos del profesional
         System.out.println("Registrar datos del profesional de salud:");
         System.out.print("Nombre: ");
         String nombre = sc.nextLine();
@@ -120,22 +145,39 @@ public class Main {
         String direccion = sc.nextLine();
         System.out.print("Edad: ");
         int edad = Integer.parseInt(sc.nextLine());
-        System.out.print("Condición médica (vacío si no aplica): ");
-        String condicion = sc.nextLine();
 
-        ProfesionalSalud prof = new ProfesionalSalud(nombre, cedulaProf, direccion, edad, condicion);
+        String tipo = "";
+        while (true) {
+            System.out.print("Tipo de profesional (1 - Médico, 2 - Enfermero): ");
+            String opcion = sc.nextLine();
+            if (opcion.equals("1")) {
+                tipo = "Médico";
+                break;
+            } else if (opcion.equals("2")) {
+                tipo = "Enfermero";
+                break;
+            } else {
+                System.out.println("Opción inválida, intente de nuevo.");
+            }
+        }
 
-        Vacunacion v = new Vacunacion(cedula, fecha, tipoVacuna, dosis, prof);
-        vacunacionService.registrarVacunacion(v);
-        System.out.println("Vacunación registrada con éxito.");
+        ProfesionalSalud profesional = new ProfesionalSalud(nombre, cedulaProf, direccion, edad, tipo);
+
+        // Obtener dosis actual (aquí puedes mejorar consultando historial)
+        int dosisActual = 1;
+
+        Vacunacion vacunacion = new Vacunacion(cedula, fecha, nombreVacuna, dosisActual, profesional);
+
+        vacunacionService.registrarVacunacion(vacunacion);
+
+        System.out.println("Profesional registrado como: " + tipo);
     }
+
 
     private static void verHistorial() {
         System.out.print("Cédula del paciente: ");
         String cedula = sc.nextLine();
-        List<Vacunacion> historial = vacunacionService.historialPorPaciente(cedula);
-        if (historial.isEmpty()) System.out.println("No hay vacunaciones registradas para este paciente.");
-        else historial.forEach(System.out::println);
+        vacunacionService.mostrarHistorial(cedula);
     }
 
     private static void reporteMensual() {
@@ -144,5 +186,13 @@ public class Main {
         System.out.print("Mes (1-12): ");
         int mes = Integer.parseInt(sc.nextLine());
         reporteService.reporteMensual(año, java.time.Month.of(mes));
+    }
+
+    private static void agregarVacuna() {
+        System.out.print("Nombre de la nueva vacuna: ");
+        String nombre = sc.nextLine();
+        System.out.print("Cantidad de dosis necesarias: ");
+        int dosis = Integer.parseInt(sc.nextLine());
+        vacunacionService.agregarVacunaAlCatalogo(nombre, dosis);
     }
 }
