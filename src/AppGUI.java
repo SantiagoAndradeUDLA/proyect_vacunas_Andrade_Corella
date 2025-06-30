@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class AppGUI extends JFrame {
 
@@ -44,7 +45,29 @@ public class AppGUI extends JFrame {
 
         // Listeners de botones:
         btnRegistrarPaciente.addActionListener(e -> new RegistrarPacienteDialog(this, pacienteService).setVisible(true));
-        btnBuscarPaciente.addActionListener(e -> new BuscarPacienteDialog(this, pacienteService).setVisible(true));
+
+        btnBuscarPaciente.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Ingrese nombre o cédula del paciente:");
+            if (input != null && !input.trim().isEmpty()) {
+                input = input.trim();
+                Paciente porCedula = pacienteService.buscarPorCedula(input);
+                if (porCedula != null) {
+                    JOptionPane.showMessageDialog(this, porCedula.toString(), "Paciente encontrado", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    List<Paciente> porNombre = pacienteService.buscarPorNombre(input);
+                    if (!porNombre.isEmpty()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (Paciente p : porNombre) {
+                            sb.append(p.toString()).append("\n----------------\n");
+                        }
+                        JOptionPane.showMessageDialog(this, sb.toString(), "Pacientes encontrados", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró ningún paciente con ese nombre o cédula.", "Sin resultados", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            }
+        });
+
         btnActualizarPaciente.addActionListener(e -> new ActualizarPacienteDialog(this, pacienteService).setVisible(true));
         btnRegistrarVacunacion.addActionListener(e -> new RegistrarVacunacionDialog(this, pacienteService, vacunacionService).setVisible(true));
         btnVerHistorial.addActionListener(e -> new VerHistorialDialog(this, vacunacionService).setVisible(true));
