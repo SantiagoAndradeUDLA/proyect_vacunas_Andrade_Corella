@@ -1,0 +1,256 @@
+##El siguiente codigo permite graficar el diagrama UML del proyecto considerando sus clases y sus diferntes caracteristicas.
+##el codigo que se vera a continuacion puede ser ejecutado en la pagina "PlantUML", el diagrama tambien puede ser visto en el sigueinte enlace a drive: https://drive.google.com/file/d/10gaZsK-EQxqnYQT9m2Y7FbFcPZD5sxvY/view?usp=drive_link
+
+
+
+@startuml
+' Definición de Clases y Relaciones del Sistema de Gestión de Vacunación
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class Persona {
+  # nombre: String
+  # cedula: String
+  # direccion: String
+  # edad: int
+  # condicionMedica: String
+  + Persona(nombre, cedula, direccion, edad, condicionMedica)
+  + getNombre(): String
+  + getCedula(): String
+  + getDireccion(): String
+  + getEdad(): int
+  + getCondicionMedica(): String
+  + setNombre(nombre: String)
+  + setDireccion(direccion: String)
+  + setEdad(edad: int)
+  + setCondicionMedica(condicionMedica: String)
+}
+
+class Paciente extends Persona {
+  + Paciente(nombre, cedula, direccion, edad, condicionMedica)
+  + toString(): String
+}
+
+class ProfesionalSalud extends Persona {
+  + ProfesionalSalud(nombre, cedula, direccion, edad, condicionMedica)
+  + toString(): String
+}
+
+class Vacuna {
+  - nombre: String
+  - dosisRequeridas: int
+  + Vacuna(nombre, dosisRequeridas)
+  + getNombre(): String
+  + getDosisRequeridas(): int
+  + toString(): String
+}
+
+class Vacunacion {
+  - cedulaPaciente: String
+  - fecha: LocalDate
+  - tipoVacuna: String
+  - dosis: int
+  - profesionalSalud: ProfesionalSalud
+  + Vacunacion(cedulaPaciente, fecha, tipoVacuna, dosis, profesionalSalud)
+  + toString(): String
+  + toStringConProfesional(): String
+  + getCedulaPaciente(): String
+  + getFecha(): LocalDate
+  + getTipoVacuna(): String
+  + getDosis(): int
+  + getProfesionalSalud(): ProfesionalSalud
+  + getProfesional(): ProfesionalSalud
+}
+
+class PacienteService {
+  - pacientes: List<Paciente>
+  + registrarPaciente(p: Paciente)
+  + listarPacientes(): List<Paciente>
+  + buscarPorCedula(cedula: String): Paciente
+  + buscarPorNombre(nombre: String): List<Paciente>
+  + actualizarPaciente(cedula, direccion, edad, condicionMedica): boolean
+}
+
+class VacunacionService {
+  - catalogoVacunas: Map<String, Vacuna>
+  - registroVacunas: Map<String, Map<String, Integer>>
+  - vacunaciones: List<Vacunacion>
+  + VacunacionService()
+  + agregarVacunaAlCatalogo(nombre: String, dosisRequeridas: int)
+  + administrarVacuna(cedulaPaciente: String, nombreVacuna: String)
+  + mostrarHistorial(cedulaPaciente: String)
+  + mostrarCatalogoVacunas()
+  + historialPorPaciente(cedula: String): List<Vacunacion>
+  + getVacunaciones(): List<Vacunacion>
+  + registrarVacunacion(vacunacion: Vacunacion)
+  + getCatalogoVacunas(): List<Vacuna>
+  + obtenerSiguienteDosis(cedulaPaciente: String, nombreVacuna: String): int
+}
+
+class ReporteService {
+  - pacienteService: PacienteService
+  - vacunacionService: VacunacionService
+  + ReporteService(pacienteService, vacunacionService)
+  + alertasDosisFaltantes()
+  + reporteMensual(anio: int, mes: Month)
+  + generarReporteMensual(anio: int, mes: int): String
+}
+
+class Main {
+  - sc: Scanner
+  - pacienteService: PacienteService
+  - vacunacionService: VacunacionService
+  - reporteService: ReporteService
+  - dtf: DateTimeFormatter
+  + main(args: String[])
+  - pedirCedulaValida(): String
+  - registrarPaciente()
+  - buscarPaciente()
+  - actualizarPaciente()
+  - registrarVacunacion()
+  - verHistorial()
+  - reporteMensual()
+  - agregarVacuna()
+}
+
+class AppGUI extends JFrame {
+  - pacienteService: PacienteService
+  - vacunacionService: VacunacionService
+  - reporteService: ReporteService
+  + AppGUI()
+  - getAlertasText(): String
+  - getCatalogoText(): String
+  + main(args: String[])
+}
+
+class VentanaPrincipal extends JFrame {
+  - pacienteService: PacienteService
+  - vacunacionService: VacunacionService
+  - reporteService: ReporteService
+  + VentanaPrincipal()
+  - mostrarAlertas()
+  - mostrarCatalogo()
+  + main(args: String[])
+}
+
+class ActualizarPacienteDialog extends JDialog {
+  - pacienteService: PacienteService
+  - tfCedulaBusqueda: JTextField
+  - btnBuscar: JButton
+  - tfDireccion: JTextField
+  - tfEdad: JTextField
+  - tfCondicion: JTextField
+  - btnActualizar: JButton
+  - pacienteActual: Paciente
+  + ActualizarPacienteDialog(parent, pacienteService)
+  - buscarPaciente()
+  - actualizarPaciente()
+}
+
+class AgregarVacunaDialog extends JDialog {
+  - vacunacionService: VacunacionService
+  - tfNombre: JTextField
+  - tfDosisRequeridas: JTextField
+  + AgregarVacunaDialog(owner, vacunacionService)
+  - agregarVacuna()
+}
+
+class BuscarPacienteDialog extends JDialog {
+  - pacienteService: PacienteService
+  - tfBusqueda: JTextField
+  - taResultados: JTextArea
+  - cbTipoBusqueda: JComboBox<String>
+  + BuscarPacienteDialog(parent, pacienteService)
+  - realizarBusqueda()
+}
+
+class RegistrarPacienteDialog extends JDialog {
+  - tfNombre: JTextField
+  - tfCedula: JTextField
+  - tfDireccion: JTextField
+  - tfEdad: JTextField
+  - tfCondicion: JTextField
+  - pacienteService: PacienteService
+  + RegistrarPacienteDialog(parent, pacienteService)
+  - registrarPaciente()
+}
+
+class RegistrarVacunacionDialog extends JDialog {
+  - pacienteService: PacienteService
+  - vacunacionService: VacunacionService
+  - tfCedulaPaciente: JTextField
+  - cbVacunas: JComboBox<String>
+  - tfFecha: JTextField
+  - tfNombreProf: JTextField
+  - tfCedulaProf: JTextField
+  - tfDireccionProf: JTextField
+  - tfEdadProf: JTextField
+  - cbTipoProf: JComboBox<String>
+  + RegistrarVacunacionDialog(parent, pacienteService, vacunacionService)
+  - registrarVacunacion()
+}
+
+class ReporteMensualDialog extends JDialog {
+  - reporteService: ReporteService
+  - tfMesAnio: JTextField
+  - taReporte: JTextArea
+  + ReporteMensualDialog(owner, reporteService)
+  - generarReporte()
+}
+
+class VerHistorialDialog extends JDialog {
+  - vacunacionService: VacunacionService
+  - tfCedula: JTextField
+  - taHistorial: JTextArea
+  + VerHistorialDialog(owner, vacunacionService)
+  - mostrarHistorial()
+}
+
+
+' Relaciones
+PacienteService "1" *-- "0..*" Paciente : gestiona >
+VacunacionService "1" *-- "0..*" Vacunacion : gestiona >
+VacunacionService "1" *-- "0..*" Vacuna : gestiona catálogo >
+Vacunacion "1" *-- "1" ProfesionalSalud : aplicada por >
+Vacunacion "1" -- "1" Paciente : para >
+ReporteService ..> PacienteService : utiliza
+ReporteService ..> VacunacionService : utiliza
+
+Main ..> PacienteService
+Main ..> VacunacionService
+Main ..> ReporteService
+
+AppGUI ..> PacienteService
+AppGUI ..> VacunacionService
+AppGUI ..> ReporteService
+AppGUI ..> RegistrarPacienteDialog
+AppGUI ..> ActualizarPacienteDialog
+AppGUI ..> RegistrarVacunacionDialog
+AppGUI ..> VerHistorialDialog
+AppGUI ..> ReporteMensualDialog
+AppGUI ..> AgregarVacunaDialog
+
+VentanaPrincipal ..> PacienteService
+VentanaPrincipal ..> VacunacionService
+VentanaPrincipal ..> ReporteService
+VentanaPrincipal ..> RegistrarPacienteDialog
+VentanaPrincipal ..> BuscarPacienteDialog
+VentanaPrincipal ..> ActualizarPacienteDialog
+VentanaPrincipal ..> RegistrarVacunacionDialog
+VentanaPrincipal ..> VerHistorialDialog
+VentanaPrincipal ..> ReporteMensualDialog
+VentanaPrincipal ..> AgregarVacunaDialog
+
+ActualizarPacienteDialog ..> PacienteService
+AgregarVacunaDialog ..> VacunacionService
+BuscarPacienteDialog ..> PacienteService
+RegistrarPacienteDialog ..> PacienteService
+RegistrarVacunacionDialog ..> PacienteService
+RegistrarVacunacionDialog ..> VacunacionService
+ReporteMensualDialog ..> ReporteService
+VerHistorialDialog ..> VacunacionService
+
+@enduml
+
+
